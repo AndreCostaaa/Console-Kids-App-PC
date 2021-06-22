@@ -1,8 +1,8 @@
 import pygame
 from led import BiColorSquareLed
-from constants import BLACK
-class Matrix:
+from constants import BLACK, MATRIX_COLOR_ARR
 
+class Matrix:
     def __init__(self, rows, cols,x ,y, w,h, clr):
         self.rect = pygame.Rect(x,y,w,h)
         self.color = clr
@@ -22,4 +22,4 @@ class Matrix:
                 self.led_lst[y][x].draw(win)
 
     def set_color(self, pos, clr):
-        self.led_lst[pos[0]][pos[1]].set_color(clr)
+        self.led_lst[pos[0]][pos[1]].set_color(MATRIX_COLOR_ARR[clr])

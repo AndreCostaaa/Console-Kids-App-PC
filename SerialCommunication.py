@@ -1,5 +1,7 @@
 import serial
-
+import time
+from serial.serialutil import SerialException
+from constants import VALID_MSG_BEGGINING
 class Serial:
     def __init__(self, com, br, time_out=0.1):
         self.serial = None
@@ -12,11 +14,11 @@ class Serial:
             self.serial = serial.Serial(com, br)
             self.buffer = []
             self.disconnected = False
-            delay(1)
+            time.sleep(1)
             self.setData('k')
         except:
             print("Could not open port", com)
-
+        
     def open(self):
         if not self.disconnected:
             if not self.serial.isOpen():
@@ -29,26 +31,28 @@ class Serial:
     def getNewData(self):
         if not self.disconnected:
             try:
-                lst = []
+                string_in = []
+                valid_start = False
                 if self.serial.in_waiting > 0:
                     data = self.serial.read(self.serial.in_waiting)
-                    if data:
-                        for d in data:
-                            if chr(d) == '\r':
-                                self.buffer.append(lst)
-                            elif chr(d) == '\n':
-                                break
-                            lst.append(chr(d))
-            except:
+                    for i in range(len(data)):
+                        if chr(data[i]) in VALID_MSG_BEGGINING or valid_start:
+                            valid_start = True
+                            if chr(data[i]) == "\r":
+                                self.buffer.append(string_in)
+                                valid_start = False
+                                string_in = []
+                            else:
+                                string_in.append(data[i])
+            except SerialException as e:
+                print(e)
                 if not self.disconnected:
                     print("Disconnected")
                     self.disconnected = True
 
     def getData(self):
         if len(self.buffer) > 0:
-            data = self.buffer[0]
-            self.buffer.pop(0)
-            return data
+            return self.buffer.pop(0)
         return 0
 
     def setData(self, data):
