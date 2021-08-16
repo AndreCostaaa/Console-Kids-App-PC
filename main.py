@@ -4,17 +4,20 @@ import threading
 from constants import *
 from card import Card
 from SerialCommunication import Serial
+import argparse
 
 COM = 'COM2'
 BR = 115200
+
 class main:
     def __init__(self):
+        
         pygame.init()
         pygame.display.set_caption("Console App")
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
-        self.card = Card(0, 0, WIDTH, HEIGHT, GREY)
+        self.card = Card(0, 0, WIDTH, HEIGHT, BACKGROUND)
         self.draw_list = [self.card]
-        self.serial = Serial(COM, BR)
+        self.serial = Serial(COM, BR, debug=DEBUG)
         self.LED_ARR = [self.card.led_red, self.card.led_green, self.card.led_yellow, self.card.led_blue]
         self.BTN_ARR = [self.card.button_red,self.card.button_green, self.card.button_yellow, self.card.button_blue]
         poll_data_thread = threading.Thread(target=self.poll_data)
@@ -72,17 +75,38 @@ class main:
                 data = self.serial.getData()
                 if data != 0:
                     if DEBUG:
-                        print("New Data:", end="")
-                        for i in range(2):
-                            print(chr(data[i]), end="")
+                        print("Treating:", end="")
+                        for i, c in enumerate(data[:-1]):
+                            if i < 2:
+                                print(chr(c), end=" ")
+                            else:
+                                print(c, end=" ")
                         print()
-                    self.treat_data_in(data)
+                    self.treat_data_in(data[:-1])
 
     def poll_data(self):
         while True:
             self.serial.getNewData()
 
 if __name__ == "__main__":
-    if "debug" in str(sys.argv).lower():
+    print()
+    print('-----------------------------------------------------------------------------------------------------')
+    print(" Welcome to the Console Kids' PC App")
+    print(' In order to use this app, a "Console Kids" board must be connected to the computer')
+    print(' Check which COM PORT is being used by the arduino and start this app using "python main.py -c [COM]"')
+    print('-----------------------------------------------------------------------------------------------------')
+    print()
+    parser = argparse.ArgumentParser(description="Console Kids PC App")
+    parser.add_argument('-c', '--com', metavar='?', help="REQUIRED: Number of arduino's COM PORT", required=True)
+    parser.add_argument('-d', '--debug', help="OPTIONAL: Use this flag for debugging", action="store_true", required=False)
+    args = parser.parse_args()
+
+    COM = 'COM'+ args.com
+ 
+    print("Loading ...")
+    print("Connecting to " + COM)
+    if args.debug:
         DEBUG = True
+        print("Debug Mode Activated")
+
     main()

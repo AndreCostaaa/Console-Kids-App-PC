@@ -1,12 +1,13 @@
 import serial
 import time
 from serial.serialutil import SerialException
-from constants import VALID_MSG_BEGGINING
+from constants import VALID_MSG_BEGGINING, DEBUG
 class Serial:
-    def __init__(self, com, br, time_out=0.1):
+    def __init__(self, com, br, time_out=0.1, debug=False):
         self.serial = None
         self.buffer = []
         self.disconnected = True
+        self.debug = debug
         self.start(com, br)
 
     def start(self, com, br):
@@ -31,19 +32,12 @@ class Serial:
     def getNewData(self):
         if not self.disconnected:
             try:
-                string_in = []
-                valid_start = False
                 if self.serial.in_waiting > 0:
-                    data = self.serial.read(self.serial.in_waiting)
-                    for i in range(len(data)):
-                        if chr(data[i]) in VALID_MSG_BEGGINING or valid_start:
-                            valid_start = True
-                            if chr(data[i]) == "\r":
-                                self.buffer.append(string_in)
-                                valid_start = False
-                                string_in = []
-                            else:
-                                string_in.append(data[i])
+                    data = self.serial.readline()
+                    
+                    self.buffer.append(data)
+                    if self.debug:
+                        print("Data: ", data)
             except SerialException as e:
                 print(e)
                 if not self.disconnected:
