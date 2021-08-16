@@ -1,7 +1,7 @@
 import serial
 import time
 from serial.serialutil import SerialException
-from constants import VALID_MSG_BEGGINING, DEBUG
+from constants import MSG_SIZE
 class Serial:
     def __init__(self, com, br, time_out=0.1, debug=False):
         self.serial = None
@@ -32,9 +32,8 @@ class Serial:
     def getNewData(self):
         if not self.disconnected:
             try:
-                if self.serial.in_waiting > 0:
-                    data = self.serial.readline()
-                    
+                while self.serial.in_waiting >= MSG_SIZE:
+                    data = self.serial.read(MSG_SIZE)                    
                     self.buffer.append(data)
                     if self.debug:
                         print("Data: ", data)

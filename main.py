@@ -82,7 +82,7 @@ class main:
                             else:
                                 print(c, end=" ")
                         print()
-                    self.treat_data_in(data[:-1])
+                    self.treat_data_in(data)
 
     def poll_data(self):
         while True:
