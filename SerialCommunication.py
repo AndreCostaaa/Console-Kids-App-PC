@@ -1,7 +1,7 @@
 import serial
 import time
 from serial.serialutil import SerialException
-from constants import MSG_SIZE
+from constants import MSG_SIZE, CONNECTED
 class Serial:
     def __init__(self, com, br, time_out=0.1, debug=False):
         self.serial = None
@@ -12,13 +12,17 @@ class Serial:
 
     def start(self, com, br):
         try:
+            print("Connecting to " + com)
             self.serial = serial.Serial(com, br)
             self.buffer = []
             self.disconnected = False
-            time.sleep(1)
-            self.setData('k')
-        except:
-            print("Could not open port", com)
+            self.serial.flushOutput()   
+            time.sleep(2)
+            self.setData(CONNECTED)
+            time.sleep(.5)
+            print("Connected to " + com)
+        except Exception as e:
+            print(e)
         
     def open(self):
         if not self.disconnected:
@@ -33,7 +37,7 @@ class Serial:
         if not self.disconnected:
             try:
                 while self.serial.in_waiting >= MSG_SIZE:
-                    data = self.serial.read(MSG_SIZE)                    
+                    data = self.serial.read(MSG_SIZE)              
                     self.buffer.append(data)
                     if self.debug:
                         print("Data: ", data)
@@ -48,6 +52,7 @@ class Serial:
             return self.buffer.pop(0)
         return 0
 
-    def setData(self, data):
+    def setData(self, data: str):
         if not self.disconnected:
-            self.serial.write(data.encode())
+            self.serial.write(data.encode('ascii'))
+            

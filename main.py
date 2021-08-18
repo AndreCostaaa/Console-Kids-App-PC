@@ -5,6 +5,7 @@ from constants import *
 from card import Card
 from SerialCommunication import Serial
 import argparse
+import time
 
 COM = 'COM2'
 BR = 115200
@@ -20,23 +21,28 @@ class main:
         self.serial = Serial(COM, BR, debug=DEBUG)
         self.LED_ARR = [self.card.led_red, self.card.led_green, self.card.led_yellow, self.card.led_blue]
         self.BTN_ARR = [self.card.button_red,self.card.button_green, self.card.button_yellow, self.card.button_blue]
-        poll_data_thread = threading.Thread(target=self.poll_data)
-        poll_data_thread.setDaemon(True)
-        process_data_thread = threading.Thread(target=self.process_data)
-        process_data_thread.setDaemon(True)
-        poll_data_thread.start()
-        process_data_thread.start()
+        self.poll_data_thread = threading.Thread(target=self.poll_data)
+        self.poll_data_thread.setDaemon(True)
+        self.process_data_thread = threading.Thread(target=self.process_data)
+        self.process_data_thread.setDaemon(True)
         self.run()
 
     def run(self):
+        print("Loading Completed")
+        self.poll_data_thread.start()
+        self.process_data_thread.start()
+        last_time = 0
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    if not self.serial .disconnected:
-                        self.serial.close()
-                    sys.exit()
-            if self.serial.disconnected:
+                    self.quit_program()
+            if self.is_thread_dead():
+                print("Thread:", self.get_crashed_thread(), "crashed...")
+                print("Quitting the program")
+                self.quit_program()
+            if self.serial.disconnected and time.time() - last_time > 1:
                 self.serial = Serial(COM, BR)
+                last_time = time.time()
             self.draw()
 
     def draw(self):
@@ -44,6 +50,23 @@ class main:
         for obj in self.draw_list:
             obj.draw(self.window)
         pygame.display.update()
+
+    def quit_program(self):
+        if not self.serial .disconnected:
+            self.serial.close()
+        pygame.quit()
+        sys.exit()
+
+    def is_thread_dead(self):
+        if not self.poll_data_thread.is_alive() or not self.process_data_thread.is_alive():
+            return True
+        return False
+    def get_crashed_thread(self):
+        if not self.poll_data_thread.is_alive():
+            return "Poll Data Thread"
+        elif not self.process_data_thread.is_alive():
+            return "Process Data Thread"
+        return "No Thread"
 
     def treat_data_in(self, data):
         command = chr(data[0])
@@ -103,10 +126,10 @@ if __name__ == "__main__":
 
     COM = 'COM'+ args.com
  
-    print("Loading ...")
-    print("Connecting to " + COM)
+       
     if args.debug:
         DEBUG = True
         print("Debug Mode Activated")
+    print("Loading ...") 
 
     main()

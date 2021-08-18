@@ -19,6 +19,7 @@ GREY = (105,105,105)
 BACKGROUND = (24, 23, 53)
 #Commands
 
+CONNECTED = 'k'
 SET = 'S'
 GET = 'G'
 MATRIX = 'M'

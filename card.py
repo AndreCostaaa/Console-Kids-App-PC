@@ -26,6 +26,7 @@ class Card:
         self.component_lst = [self.led_red, self.led_green, self.led_yellow, self.led_blue, self.button_red, self.button_green, self.button_yellow, self.button_blue, self.matrix]
         self.led_lst = [self.led_red, self.led_green, self.led_yellow, self.led_blue]
         self.btn_lst = [self.button_red, self.button_green, self.button_yellow, self.button_blue]
+    
     def draw(self,win):
         pygame.draw.rect(win, self.color, self.rect)
         for component in self.component_lst:
